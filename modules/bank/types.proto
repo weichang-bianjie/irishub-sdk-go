@@ -1,0 +1,51 @@
+syntax = "proto3";
+package irishub.modules.bank;
+
+import "third_party/proto/gogoproto/gogo.proto";
+import "types/types.proto";
+
+option go_package = "github.com/irisnet/irishub-sdk-go/modules/bank";
+
+
+
+// MsgSend - high level transaction of the coin module
+message MsgSend {
+  option (gogoproto.equal) = true;
+
+  bytes from_address = 1 [
+    (gogoproto.casttype) = "github.com/irisnet/irishub-sdk-go/types.AccAddress",
+    (gogoproto.moretags) = "yaml:\"from_address\""
+  ];
+  bytes to_address = 2 [
+    (gogoproto.casttype) = "github.com/irisnet/irishub-sdk-go/types.AccAddress",
+    (gogoproto.moretags) = "yaml:\"to_address\""
+  ];
+  irishub.Coin amount = 3
+      [(gogoproto.nullable) = false, (gogoproto.casttype) = "github.com/irisnet/irishub-sdk-go/types.Coins"];
+}
+
+// Input models transaction input
+message Input {
+  option (gogoproto.equal) = true;
+
+  bytes    address                  = 1 [(gogoproto.casttype) = "github.com/irisnet/irishub-sdk-go/types.AccAddress"];
+  irishub.Coin coins = 2
+      [(gogoproto.nullable) = false, (gogoproto.casttype) = "github.com/irisnet/irishub-sdk-go/types.Coins"];
+}
+
+// Output models transaction outputs
+message Output {
+  option (gogoproto.equal) = true;
+
+  bytes    address                  = 1 [(gogoproto.casttype) = "github.com/irisnet/irishub-sdk-go/types.AccAddress"];
+  irishub.Coin coins = 2
+      [(gogoproto.nullable) = false, (gogoproto.casttype) = "github.com/irisnet/irishub-sdk-go/types.Coins"];
+}
+
+// MsgMultiSend - high level transaction of the coin module
+message MsgMultiSend {
+  option (gogoproto.equal) = true;
+
+  repeated Input  inputs  = 1 [(gogoproto.nullable) = false];
+  repeated Output outputs = 2 [(gogoproto.nullable) = false];
+}

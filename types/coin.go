@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"encoding/json"
 )
 
 var (
@@ -26,13 +27,13 @@ var (
 	iris           = "iris"
 )
 
-type Coin struct {
-	Denom string `json:"denom"`
-	// To allow the use of unsigned integers (see: #1273) a larger refactor will
-	// need to be made. So we use signed integers for now with safety measures in
-	// place preventing negative values being used.
-	Amount Int `json:"amount"`
-}
+//type Coin struct {
+//	Denom string `json:"denom"`
+//	// To allow the use of unsigned integers (see: #1273) a larger refactor will
+//	// need to be made. So we use signed integers for now with safety measures in
+//	// place preventing negative values being used.
+//	Amount Int `json:"amount"`
+//}
 
 // NewCoin returns a new coin with a denomination and amount. It will panic if
 // the amount is negative.
@@ -149,6 +150,11 @@ func NewCoins(coins ...Coin) Coins {
 // Empty returns true if there are no coins and false otherwise.
 func (coins Coins) Empty() bool {
 	return len(coins) == 0
+}
+
+// IsEqual returns true if the two sets of Coins have the same value
+func (coins Coins) Equal(coinsB *Coins) bool {
+	return coins.IsEqual(*coinsB)
 }
 
 // IsEqual returns true if the two sets of Coins have the same value
@@ -291,6 +297,22 @@ func (coins Coins) IsAnyNegative() bool {
 	return false
 }
 
+// IsAllPositive returns true if there is at least one coin and all currencies
+// have a positive value.
+func (coins Coins) IsAllPositive() bool {
+	if len(coins) == 0 {
+		return false
+	}
+
+	for _, coin := range coins {
+		if !coin.IsPositive() {
+			return false
+		}
+	}
+
+	return true
+}
+
 // removeZeroCoins removes all zero coins from the given coin set in-place.
 func removeZeroCoins(coins Coins) Coins {
 	i, l := 0, len(coins)
@@ -407,4 +429,32 @@ func findDup(coins findDupDescriptor) int {
 	}
 
 	return -1
+}
+
+// SortedJSON takes any JSON and returns it sorted by keys. Also, all white-spaces
+// are removed.
+// This method can be used to canonicalize JSON to be returned by GetSignBytes,
+// e.g. for the ledger integration.
+// If the passed JSON isn't valid it will return an error.
+func SortJSON(toSortJSON []byte) ([]byte, error) {
+	var c interface{}
+	err := json.Unmarshal(toSortJSON, &c)
+	if err != nil {
+		return nil, err
+	}
+	js, err := json.Marshal(c)
+	if err != nil {
+		return nil, err
+	}
+	return js, nil
+}
+
+// MustSortJSON is like SortJSON but panic if an error occurs, e.g., if
+// the passed JSON isn't valid.
+func MustSortJSON(toSortJSON []byte) []byte {
+	js, err := SortJSON(toSortJSON)
+	if err != nil {
+		panic(err)
+	}
+	return js
 }

@@ -10,14 +10,14 @@ import (
 
 var ZeroDecCoin = DecCoin{}
 
-// ----------------------------------------------------------------------------
-// Decimal Coin
-// NOTE: The amount field is an Decimal which implements the custom method
-// signatures required by gogoproto.
-type DecCoin struct {
-	Denom  string `json:"denom"`
-	Amount Dec    `json:"amount"`
-}
+//// ----------------------------------------------------------------------------
+//// Decimal Coin
+//// NOTE: The amount field is an Decimal which implements the custom method
+//// signatures required by gogoproto.
+//type DecCoin struct {
+//	Denom  string `json:"denom"`
+//	Amount Dec    `json:"amount"`
+//}
 
 // NewDecCoin creates a new DecCoin instance from an Int.
 func NewDecCoin(denom string, amount Int) DecCoin {

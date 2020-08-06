@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/irisnet/irishub-sdk-go/adapter"
-	"github.com/irisnet/irishub-sdk-go/modules/bank"
 	"github.com/irisnet/irishub-sdk-go/modules/service"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 	"github.com/irisnet/irishub-sdk-go/utils"
@@ -315,16 +314,16 @@ func (base *baseClient) ValidateTxSize(txSize int, msgs []sdk.Msg) sdk.Error {
 
 	}
 
-	var param bank.Params
-
-	err := base.QueryParams("auth", &param)
-	if err != nil {
-		panic(err)
-	}
-
-	if uint64(txSize) > param.TxSizeLimit {
-		return sdk.Wrapf("tx size too large, expected: <= %d, got %d", param.TxSizeLimit, txSize)
-	}
+	//var param bank.Params
+	//
+	//err := base.QueryParams("auth", &param)
+	//if err != nil {
+	//	panic(err)
+	//}
+	//
+	//if uint64(txSize) > param.TxSizeLimit {
+	//	return sdk.Wrapf("tx size too large, expected: <= %d, got %d", param.TxSizeLimit, txSize)
+	//}
 	return nil
 }
 

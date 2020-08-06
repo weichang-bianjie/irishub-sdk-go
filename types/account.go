@@ -108,10 +108,7 @@ func (acc BaseAccount) Convert() interface{} {
 	return acc
 }
 
-type Balances []struct {
-	Denom  string `json:"denom"`
-	Amount string `json:"amount"`
-}
+type Balances []Coin
 
 func (acc *Balances) Convert() interface{} {
 	return acc

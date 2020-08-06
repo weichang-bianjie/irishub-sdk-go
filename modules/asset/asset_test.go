@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"testing"
+	"encoding/json"
 )
 
 type AssetTestSuite struct {
@@ -26,6 +27,8 @@ func (ats *AssetTestSuite) TestQueryTokens() {
 	token, err := ats.Asset().QueryTokens()
 	require.NoError(ats.T(), err)
 	require.NotEmpty(ats.T(), token)
+	data,_ := json.Marshal(token)
+	fmt.Println(string(data))
 }
 
 func (ats AssetTestSuite) TestQueryToken() {
@@ -33,6 +36,7 @@ func (ats AssetTestSuite) TestQueryToken() {
 	if err != nil {
 		ats.Error(err)
 	}
-	fmt.Println(token)
 	require.NoError(ats.T(), err)
+	data,_ := json.Marshal(token)
+	fmt.Println(string(data))
 }

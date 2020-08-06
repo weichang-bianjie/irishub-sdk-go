@@ -23,14 +23,14 @@ func (bts *BankTestSuite) SetupTest() {
 }
 
 func (bts BankTestSuite) TestGetAccount() {
-	acc, err := bts.Bank().QueryAccount("iaa1lhjw88yzxwwjafwdz5ztc0fkxrn3atzr7gfjtm")
+	acc, err := bts.Bank().QueryAccount("iaa1x98k5n7xj0h3udnf5dcdzw85tsfa75qm0kqak0")
 	fmt.Println(acc)
 	require.NoError(bts.T(), err)
 	require.NotEmpty(bts.T(), acc)
 }
 
 func (bts BankTestSuite) TestGetTokenStats() {
-	acc, err := bts.Bank().QueryTokenStats("iris")
+	acc, err := bts.Bank().QueryTokenStats("kitty")
 	require.NoError(bts.T(), err)
 	fmt.Printf("%v", acc)
 }
@@ -38,7 +38,7 @@ func (bts BankTestSuite) TestGetTokenStats() {
 func (bts BankTestSuite) TestQueryTotalSupply() {
 	acc, err := bts.Bank().QueryTotalSupply()
 	require.NoError(bts.T(), err)
-	fmt.Println(acc)
+	fmt.Printf("%v", acc)
 }
 
 //

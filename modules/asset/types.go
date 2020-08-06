@@ -26,17 +26,17 @@ func init() {
 	registerCodec(cdc)
 }
 
-// MsgIssueToken
-type MsgIssueToken struct {
-	Symbol        string         `json:"symbol"`
-	Name          string         `json:"name"`
-	Decimal       uint8          `json:"decimal"`
-	MinUnitAlias  string         `json:"min_unit_alias"`
-	InitialSupply uint64         `json:"initial_supply"`
-	MaxSupply     uint64         `json:"max_supply"`
-	Mintable      bool           `json:"mintable"`
-	Owner         sdk.AccAddress `json:"owner"`
-}
+//// MsgIssueToken
+//type MsgIssueToken struct {
+//	Symbol        string         `json:"symbol"`
+//	Name          string         `json:"name"`
+//	Decimal       uint8          `json:"decimal"`
+//	MinUnitAlias  string         `json:"min_unit_alias"`
+//	InitialSupply uint64         `json:"initial_supply"`
+//	MaxSupply     uint64         `json:"max_supply"`
+//	Mintable      bool           `json:"mintable"`
+//	Owner         sdk.AccAddress `json:"owner"`
+//}
 
 func (msg MsgIssueToken) Route() string { return ModuleName }
 
@@ -64,12 +64,12 @@ func (msg MsgIssueToken) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Owner}
 }
 
-// MsgTransferTokenOwner for transferring the token owner
-type MsgTransferTokenOwner struct {
-	SrcOwner sdk.AccAddress `json:"src_owner"` // the current owner address of the token
-	DstOwner sdk.AccAddress `json:"dst_owner"` // the new owner
-	Symbol   string         `json:"symbol"`    // the token symbol
-}
+//// MsgTransferTokenOwner for transferring the token owner
+//type MsgTransferTokenOwner struct {
+//	SrcOwner sdk.AccAddress `json:"src_owner"` // the current owner address of the token
+//	DstOwner sdk.AccAddress `json:"dst_owner"` // the new owner
+//	Symbol   string         `json:"symbol"`    // the token symbol
+//}
 
 // GetSignBytes implements Msg
 func (msg MsgTransferTokenOwner) GetSignBytes() []byte {
@@ -96,14 +96,14 @@ func (msg MsgTransferTokenOwner) Route() string { return ModuleName }
 // Type implements Msg
 func (msg MsgTransferTokenOwner) Type() string { return "transfer_token_owner" }
 
-// MsgEditToken for editing a specified token
-type MsgEditToken struct {
-	Symbol    string         `json:"symbol"` //  symbol of token
-	Owner     sdk.AccAddress `json:"owner"`  //  owner of token
-	MaxSupply uint64         `json:"max_supply"`
-	Mintable  Bool           `json:"mintable"` //  mintable of token
-	Name      string         `json:"name"`
-}
+//// MsgEditToken for editing a specified token
+//type MsgEditToken struct {
+//	Symbol    string         `json:"symbol"` //  symbol of token
+//	Owner     sdk.AccAddress `json:"owner"`  //  owner of token
+//	MaxSupply uint64         `json:"max_supply"`
+//	Mintable  Bool           `json:"mintable"` //  mintable of token
+//	Name      string         `json:"name"`
+//}
 
 func (msg MsgEditToken) Route() string { return ModuleName }
 
@@ -131,13 +131,13 @@ func (msg MsgEditToken) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Owner}
 }
 
-// MsgMintToken for minting the token to a specified address
-type MsgMintToken struct {
-	Symbol string         `json:"symbol"` // the symbol of the token
-	Owner  sdk.AccAddress `json:"owner"`  // the current owner address of the token
-	To     sdk.AccAddress `json:"to"`     // address of minting token to
-	Amount uint64         `json:"amount"` // amount of minting token
-}
+//// MsgMintToken for minting the token to a specified address
+//type MsgMintToken struct {
+//	Symbol string         `json:"symbol"` // the symbol of the token
+//	Owner  sdk.AccAddress `json:"owner"`  // the current owner address of the token
+//	To     sdk.AccAddress `json:"to"`     // address of minting token to
+//	Amount uint64         `json:"amount"` // amount of minting token
+//}
 
 func (msg MsgMintToken) Route() string { return ModuleName }
 
@@ -220,17 +220,17 @@ func (b *Bool) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// Token defines a struct for the fungible token
-type Token struct {
-	Symbol        string         `json:"symbol"`
-	Name          string         `json:"name"`
-	Scale         uint8          `json:"scale"`
-	MinUnit       string         `json:"min_unit"`
-	InitialSupply uint64         `json:"initial_supply"`
-	MaxSupply     uint64         `json:"max_supply"`
-	Mintable      bool           `json:"mintable"`
-	Owner         sdk.AccAddress `json:"owner"`
-}
+//// Token defines a struct for the fungible token
+//type Token struct {
+//	Symbol        string         `json:"symbol"`
+//	Name          string         `json:"name"`
+//	Scale         uint8          `json:"scale"`
+//	MinUnit       string         `json:"min_unit"`
+//	InitialSupply uint64         `json:"initial_supply"`
+//	MaxSupply     uint64         `json:"max_supply"`
+//	Mintable      bool           `json:"mintable"`
+//	Owner         sdk.AccAddress `json:"owner"`
+//}
 
 func registerCodec(cdc sdk.Codec) {
 	cdc.RegisterConcrete(MsgIssueToken{}, "irismod/token/MsgIssueToken")

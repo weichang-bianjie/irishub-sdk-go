@@ -15,6 +15,24 @@ type bankClient struct {
 	*log.Logger
 }
 
+//var (
+//	conn *grpc.ClientConn
+//)
+//
+//func Close() {
+//	defer conn.Close()
+//}
+//
+//func GrpcConnect() QueryClient {
+//	var err error
+//	conn, err = grpc.Dial("localhost:50051", grpc.WithInsecure(), grpc.WithBlock())
+//	if err != nil {
+//		panic(fmt.Sprintf("did not connect: %v", err.Error()))
+//	}
+//
+//	return NewQueryClient(conn)
+//}
+//
 func Create(ac sdk.BaseClient) rpc.Bank {
 	return bankClient{
 		BaseClient: ac,
@@ -31,6 +49,31 @@ func (b bankClient) Name() string {
 }
 
 func (b bankClient) QueryBalances(address, denom string) (sdk.Balances, sdk.Error) {
+
+	//ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	//defer cancel()
+
+	//if denom != "" {
+	//	req := QueryBalanceRequest{
+	//		Address: []byte(address),
+	//		Denom:   denom,
+	//	}
+	//	resp, err := b.QueryClient.Balance(ctx, &req)
+	//	if err != nil {
+	//		return sdk.Balances{}, sdk.Wrap(err)
+	//	}
+	//	return sdk.Balances{*resp.GetBalance()}, nil
+	//} else {
+	//	req := QueryAllBalancesRequest{
+	//		Address: []byte(address),
+	//	}
+	//	resp, err := b.QueryClient.AllBalances(ctx, &req)
+	//	if err != nil {
+	//		return sdk.Balances{}, sdk.Wrap(err)
+	//	}
+	//	return resp.GetBalances(), nil
+	//}
+
 	param := struct {
 		Denom   string `json:"denom"`
 		Address string `json:"address"`
@@ -91,7 +134,9 @@ func (b bankClient) QueryTotalSupply() (sdk.Coins, sdk.Error) {
 	if err := cdc.UnmarshalJSON(res, &total); err != nil {
 		return sdk.Coins{}, nil
 	}
+
 	return total, nil
+	//return resp.GetSupply(), nil
 }
 
 //Send is responsible for transferring tokens from `From` to `to` account
@@ -106,19 +151,19 @@ func (b bankClient) Send(to string, amount sdk.Coins, baseTx sdk.BaseTx) (sdk.Re
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
-	in := []Input{
-		NewInput(sender, amt),
-	}
+	//in := []Input{
+	//	NewInput(sender, amt),
+	//}
 
 	outAddr, err := sdk.AccAddressFromBech32(to)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrapf(fmt.Sprintf("%s invalid address", to))
 	}
-	out := []Output{
-		NewOutput(outAddr, amt),
-	}
+	//out := []Output{
+	//	NewOutput(outAddr, amt),
+	//}
 
-	msg := NewMsgSend(in, out)
+	msg := NewMsgSend(sender, outAddr, amt)
 	return b.BuildAndSend([]sdk.Msg{msg}, baseTx)
 }
 
@@ -135,21 +180,21 @@ func (b bankClient) MultiSend(receipts rpc.Receipts, baseTx sdk.BaseTx) (resTxs 
 	var inputs = make([]Input, len(receipts))
 	var outputs = make([]Output, len(receipts))
 	//for i, receipt := range receipts {
-	//	amt, err := b.ToMinCoin(receipt.Amount...)
-	//	if err != nil {
-	//		return nil, sdk.Wrap(err)
-	//	}
+	//amt, err := b.ToMinCoin(receipt.Amount...)
+	//if err != nil {
+	//	return nil, sdk.Wrap(err)
+	//}
 	//
-	//	outAddr, e := sdk.AccAddressFromBech32(receipt.Address)
-	//	if e != nil {
-	//		return nil, sdk.Wrapf(fmt.Sprintf("%s invalid address", receipt.Address))
-	//	}
+	//outAddr, e := sdk.AccAddressFromBech32(receipt.Address)
+	//if e != nil {
+	//	return nil, sdk.Wrapf(fmt.Sprintf("%s invalid address", receipt.Address))
+	//}
 	//
-	//	inputs[i] = NewInput(sender, amt)
-	//	outputs[i] = NewOutput(outAddr, amt)
+	//inputs[i] = NewInput(sender, amt)
+	//outputs[i] = NewOutput(outAddr, amt)
 	//}
 
-	msg := NewMsgSend(inputs, outputs)
+	msg := NewMsgMultiSend(inputs, outputs)
 	res, err := b.BuildAndSend([]sdk.Msg{msg}, baseTx)
 	if err != nil {
 		return nil, sdk.Wrap(err)
@@ -182,36 +227,36 @@ func (b bankClient) SendBatch(sender sdk.AccAddress,
 		//	inputs[i] = NewInput(sender, amt)
 		//	outputs[i] = NewOutput(outAddr, amt)
 		//}
-		msgs = append(msgs, NewMsgSend(inputs, outputs))
+		msgs = append(msgs, NewMsgMultiSend(inputs, outputs))
 	}
 	return b.SendMsgBatch(msgs, baseTx)
 }
 
-//Send is responsible for burning some tokens from `From` account
-func (b bankClient) Burn(amount sdk.DecCoins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
-	//sender, err := b.QueryAddress(baseTx.From)
-	//if err != nil {
-	//	return sdk.ResultTx{}, sdk.Wrapf("%s not found", baseTx.From)
-	//}
-	//
-	////amt, err := b.ToMinCoin(amount...)
-	//if err != nil {
-	//	return sdk.ResultTx{}, sdk.Wrap(err)
-	//}
-	//msg := NewMsgBurn(sender, amt)
-	//return b.BuildAndSend([]sdk.Msg{msg}, baseTx)
-	return sdk.ResultTx{}, nil
-}
+////Send is responsible for burning some tokens from `From` account
+//func (b bankClient) Burn(amount sdk.DecCoins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
+//	//sender, err := b.QueryAddress(baseTx.From)
+//	//if err != nil {
+//	//	return sdk.ResultTx{}, sdk.Wrapf("%s not found", baseTx.From)
+//	//}
+//	//
+//	////amt, err := b.ToMinCoin(amount...)
+//	//if err != nil {
+//	//	return sdk.ResultTx{}, sdk.Wrap(err)
+//	//}
+//	//msg := NewMsgBurn(sender, amt)
+//	//return b.BuildAndSend([]sdk.Msg{msg}, baseTx)
+//	return sdk.ResultTx{}, nil
+//}
 
-//Send is responsible for setting memo regexp for your own address, so that you can only receive coins from transactions with the corresponding memo.
-func (b bankClient) SetMemoRegexp(memoRegexp string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
-	sender, err := b.QueryAddress(baseTx.From)
-	if err != nil {
-		return sdk.ResultTx{}, sdk.Wrapf("%s not found", baseTx.From)
-	}
-	msg := NewMsgSetMemoRegexp(sender, memoRegexp)
-	return b.BuildAndSend([]sdk.Msg{msg}, baseTx)
-}
+////Send is responsible for setting memo regexp for your own address, so that you can only receive coins from transactions with the corresponding memo.
+//func (b bankClient) SetMemoRegexp(memoRegexp string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
+//	sender, err := b.QueryAddress(baseTx.From)
+//	if err != nil {
+//		return sdk.ResultTx{}, sdk.Wrapf("%s not found", baseTx.From)
+//	}
+//	msg := NewMsgSetMemoRegexp(sender, memoRegexp)
+//	return b.BuildAndSend([]sdk.Msg{msg}, baseTx)
+//}
 
 //SubscribeSendTx Subscribe MsgSend event and return subscription
 func (b bankClient) SubscribeSendTx(from, to string, callback rpc.EventMsgSendCallback) sdk.Subscription {
@@ -229,17 +274,27 @@ func (b bankClient) SubscribeSendTx(from, to string, callback rpc.EventMsgSendCa
 
 	subscription, _ := b.SubscribeTx(builder, func(data sdk.EventDataTx) {
 		for _, msg := range data.Tx.Msgs {
-			if value, ok := msg.(MsgSend); ok {
+			if value, ok := msg.(MsgMultiSend); ok {
 				for i, m := range value.Inputs {
 					callback(rpc.EventDataMsgSend{
 						Height: data.Height,
 						Hash:   data.Hash,
-						From:   m.Address.String(),
+						From:   m.String(),
 						To:     value.Outputs[i].Address.String(),
 						Amount: m.Coins,
 					})
 				}
 			}
+			if value, ok := msg.(MsgSend); ok {
+				callback(rpc.EventDataMsgSend{
+					Height: data.Height,
+					Hash:   data.Hash,
+					From:   value.FromAddress.String(),
+					To:     value.ToAddress.String(),
+					Amount: value.Amount,
+				})
+			}
+
 		}
 	})
 	return subscription

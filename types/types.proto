@@ -1,0 +1,32 @@
+syntax = "proto3";
+package irishub;
+
+import "third_party/proto/gogoproto/gogo.proto";
+import "third_party/proto/tendermint/abci/types/types.proto";
+
+option go_package                       = "github.com/irisnet/irishub-sdk-go/types";
+option (gogoproto.goproto_stringer_all) = false;
+option (gogoproto.stringer_all)         = false;
+
+// Coin defines a token with a denomination and an amount.
+//
+// NOTE: The amount field is an Int which implements the custom method
+// signatures required by gogoproto.
+message Coin {
+  option (gogoproto.equal) = true;
+
+  string denom  = 1;
+  string amount = 2 [(gogoproto.customtype) = "Int", (gogoproto.nullable) = false];
+}
+
+// DecCoin defines a token with a denomination and a decimal amount.
+//
+// NOTE: The amount field is an Dec which implements the custom method
+// signatures required by gogoproto.
+message DecCoin {
+  option (gogoproto.equal) = true;
+
+  string denom  = 1;
+  string amount = 2 [(gogoproto.customtype) = "Dec", (gogoproto.nullable) = false];
+}
+

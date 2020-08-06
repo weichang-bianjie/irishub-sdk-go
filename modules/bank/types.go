@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"regexp"
-
 	"github.com/irisnet/irishub-sdk-go/rpc"
 
 	"github.com/irisnet/irishub-sdk-go/types"
@@ -13,15 +11,13 @@ import (
 )
 
 const (
-	memoRegexpLengthLimit = 50
 	maxMsgLen             = 5
 	ModuleName            = "bank"
 )
 
 var (
 	_ types.Msg = MsgSend{}
-	_ types.Msg = MsgBurn{}
-	_ types.Msg = MsgSetMemoRegexp{}
+	_ types.Msg = MsgMultiSend{}
 
 	cdc = types.NewAminoCodec()
 )
@@ -30,23 +26,28 @@ func init() {
 	registerCodec(cdc)
 }
 
-type MsgSend struct {
-	Inputs  []Input  `json:"inputs"`
-	Outputs []Output `json:"outputs"`
-}
+//type MsgSend struct {
+//	Inputs  []Input  `json:"inputs"`
+//	Outputs []Output `json:"outputs"`
+//}
+//
+//type MsgSend struct {
+//	Inputs  []Input  `json:"inputs"`
+//	Outputs []Output `json:"outputs"`
+//}
 
 // NewMsgSend - construct arbitrary multi-in, multi-out send msg.
-func NewMsgSend(in []Input, out []Output) MsgSend {
-	return MsgSend{Inputs: in, Outputs: out}
+func NewMsgMultiSend(in []Input, out []Output) MsgMultiSend {
+	return MsgMultiSend{Inputs: in, Outputs: out}
 }
 
-func (msg MsgSend) Route() string { return ModuleName }
+func (msg MsgMultiSend) Route() string { return ModuleName }
 
 // Implements Msg.
-func (msg MsgSend) Type() string { return "send" }
+func (msg MsgMultiSend) Type() string { return "send" }
 
 // Implements Msg.
-func (msg MsgSend) ValidateBasic() error {
+func (msg MsgMultiSend) ValidateBasic() error {
 	// this just makes sure all the inputs and outputs are properly formatted,
 	// not that they actually have the money inside
 	if len(msg.Inputs) == 0 {
@@ -77,7 +78,7 @@ func (msg MsgSend) ValidateBasic() error {
 }
 
 // Implements Msg.
-func (msg MsgSend) GetSignBytes() []byte {
+func (msg MsgMultiSend) GetSignBytes() []byte {
 	var inputs, outputs []json.RawMessage
 	for _, input := range msg.Inputs {
 		inputs = append(inputs, input.GetSignBytes())
@@ -99,22 +100,62 @@ func (msg MsgSend) GetSignBytes() []byte {
 }
 
 // Implements Msg.
-func (msg MsgSend) GetSigners() []types.AccAddress {
+func (msg MsgMultiSend) GetSigners() []types.AccAddress {
 	addrs := make([]types.AccAddress, len(msg.Inputs))
 	for i, in := range msg.Inputs {
 		addrs[i] = in.Address
 	}
 	return addrs
 }
-
-//----------------------------------------
-// Input
-
-// Transaction Input
-type Input struct {
-	Address types.AccAddress `json:"address"`
-	Coins   types.Coins      `json:"coins"`
+// NewMsgSend - construct arbitrary multi-in, multi-out send msg.
+func NewMsgSend(fromAddr, toAddr types.AccAddress, amount types.Coins) MsgSend {
+	return MsgSend{FromAddress: fromAddr, ToAddress: toAddr, Amount: amount}
 }
+
+func (msg MsgSend) Route() string {
+	return ModuleName
+}
+
+func (msg MsgSend) Type() string {
+	return "send"
+}
+
+func (msg MsgSend) ValidateBasic() error {
+	if msg.FromAddress.Empty() {
+		return errors.New("missing sender address")
+	}
+	if msg.ToAddress.Empty() {
+		return errors.New("missing recipient address")
+	}
+	if !msg.Amount.IsValid() {
+		return errors.New("invalid coins")
+	}
+	if !msg.Amount.IsAllPositive() {
+		return errors.New("invalid coins")
+	}
+	return nil
+}
+
+func (msg MsgSend) GetSignBytes() []byte {
+	bz, err := cdc.MarshalJSON(msg)
+	if err != nil {
+		panic(err)
+	}
+	return types.MustSortJSON(bz)
+}
+
+func (msg MsgSend) GetSigners() []types.AccAddress {
+	return []types.AccAddress{msg.FromAddress}
+}
+
+////----------------------------------------
+//// Input
+//
+//// Transaction Input
+//type Input struct {
+//	Address types.AccAddress `json:"address"`
+//	Coins   types.Coins      `json:"coins"`
+//}
 
 // Return bytes to sign for Input
 func (in Input) GetSignBytes() []byte {
@@ -148,14 +189,14 @@ func NewInput(addr types.AccAddress, coins types.Coins) Input {
 	return input
 }
 
-//----------------------------------------
-// Output
-
-// Transaction Output
-type Output struct {
-	Address types.AccAddress `json:"address"`
-	Coins   types.Coins      `json:"coins"`
-}
+////----------------------------------------
+//// Output
+//
+//// Transaction Output
+//type Output struct {
+//	Address types.AccAddress `json:"address"`
+//	Coins   types.Coins      `json:"coins"`
+//}
 
 // Return bytes to sign for Output
 func (out Output) GetSignBytes() []byte {
@@ -189,104 +230,6 @@ func NewOutput(addr types.AccAddress, coins types.Coins) Output {
 	return output
 }
 
-// MsgBurn - high level transaction of the coin module
-type MsgBurn struct {
-	Owner types.AccAddress `json:"owner"`
-	Coins types.Coins      `json:"coins"`
-}
-
-// NewMsgBurn - construct MsgBurn
-func NewMsgBurn(owner types.AccAddress, coins types.Coins) MsgBurn {
-	return MsgBurn{Owner: owner, Coins: coins}
-}
-
-// Implements Msg.
-// nolint
-func (msg MsgBurn) Route() string { return ModuleName }
-func (msg MsgBurn) Type() string  { return "burn" }
-
-// Implements Msg.
-func (msg MsgBurn) ValidateBasic() error {
-	if len(msg.Owner) == 0 {
-		return errors.New(fmt.Sprintf("invalid address:%s", msg.Owner.String()))
-	}
-	if msg.Coins.Empty() {
-		return errors.New("empty coins to burn")
-	}
-	if !msg.Coins.IsValid() {
-		return errors.New(fmt.Sprintf("invalid coins to burn [%s]", msg.Coins))
-	}
-	return nil
-}
-
-// Implements Msg.
-func (msg MsgBurn) GetSignBytes() []byte {
-	b, err := cdc.MarshalJSON(msg)
-	if err != nil {
-		panic(err)
-	}
-	return json2.MustSort(b)
-}
-
-// Implements Msg.
-func (msg MsgBurn) GetSigners() []types.AccAddress {
-	return []types.AccAddress{msg.Owner}
-}
-
-// MsgSetMemoRegexp - set memo regexp
-type MsgSetMemoRegexp struct {
-	Owner      types.AccAddress `json:"owner"`
-	MemoRegexp string           `json:"memo_regexp"`
-}
-
-// NewMsgSetMemoRegexp - construct MsgSetMemoRegexp
-func NewMsgSetMemoRegexp(owner types.AccAddress, memoRegexp string) MsgSetMemoRegexp {
-	return MsgSetMemoRegexp{Owner: owner, MemoRegexp: memoRegexp}
-}
-
-func (msg MsgSetMemoRegexp) Route() string { return ModuleName }
-
-// Implements Msg.
-// nolint
-func (msg MsgSetMemoRegexp) Type() string { return "set-memo-regexp" }
-
-// Implements Msg.
-func (msg MsgSetMemoRegexp) ValidateBasic() error {
-	if len(msg.Owner) == 0 {
-		return errors.New(fmt.Sprintf("invalid address:%s", msg.Owner.String()))
-	}
-	if len(msg.MemoRegexp) > memoRegexpLengthLimit {
-		return errors.New("memo regexp length exceeds limit")
-	}
-	if _, err := regexp.Compile(msg.MemoRegexp); err != nil {
-		return errors.New("invalid memo regexp")
-	}
-	return nil
-}
-
-// Implements Msg.
-func (msg MsgSetMemoRegexp) GetSignBytes() []byte {
-	b, err := cdc.MarshalJSON(msg)
-	if err != nil {
-		panic(err)
-	}
-	return json2.MustSort(b)
-}
-
-// Implements Msg.
-func (msg MsgSetMemoRegexp) GetSigners() []types.AccAddress {
-	return []types.AccAddress{msg.Owner}
-}
-
-// params defines the high level settings for auth
-type Params struct {
-	GasPriceThreshold types.Int `json:"gas_price_threshold"` // gas price threshold
-	TxSizeLimit       uint64    `json:"tx_size"`             // tx size limit
-}
-
-func (p Params) Convert() interface{} {
-	return p
-}
 
 type tokenStats struct {
 	LooseTokens  types.Coins `json:"loose_tokens"`
@@ -306,8 +249,7 @@ func (ts tokenStats) Convert() interface{} {
 
 func registerCodec(cdc types.Codec) {
 	cdc.RegisterConcrete(MsgSend{}, "irishub/bank/Send")
-	cdc.RegisterConcrete(MsgBurn{}, "irishub/bank/Burn")
-	cdc.RegisterConcrete(MsgSetMemoRegexp{}, "irishub/bank/SetMemoRegexp")
+	cdc.RegisterConcrete(MsgMultiSend{}, "irishub/bank/MultiSend")
 
-	cdc.RegisterConcrete(&Params{}, "irishub/Auth/Params")
+	//cdc.RegisterConcrete(&Params{}, "irishub/Auth/Params")
 }
