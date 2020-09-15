@@ -15,7 +15,7 @@ type TxContext struct {
 	chainID    string
 	memo       string
 	fee        Coins
-	network    Network
+	//network    Network
 	mode       BroadcastMode
 	simulate   bool
 	codec      Codec
@@ -110,16 +110,16 @@ func (txCtx *TxContext) KeyManager() KeyManager {
 	return txCtx.keyManager
 }
 
-// WithNetwork returns a pointer of the context with a Network.
-func (txCtx *TxContext) WithNetwork(network Network) *TxContext {
-	txCtx.network = network
-	return txCtx
-}
-
-// Network returns network.
-func (txCtx *TxContext) Network() Network {
-	return txCtx.network
-}
+//// WithNetwork returns a pointer of the context with a Network.
+//func (txCtx *TxContext) WithNetwork(network Network) *TxContext {
+//	txCtx.network = network
+//	return txCtx
+//}
+//
+//// Network returns network.
+//func (txCtx *TxContext) Network() Network {
+//	return txCtx.network
+//}
 
 // WithMode returns a pointer of the context with a Mode.
 func (txCtx *TxContext) WithMode(mode BroadcastMode) *TxContext {

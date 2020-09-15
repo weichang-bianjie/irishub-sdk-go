@@ -39,15 +39,15 @@ type AddrPrefixCfg struct {
 	bech32AddressPrefix map[string]string
 }
 
-func SetNetwork(network Network) {
-	defaultNetwork = network
-}
+//func SetNetwork(network Network) {
+//	defaultNetwork = network
+//}
 
 // GetAddrPrefixCfg returns the config instance for the corresponding Network type
 func GetAddrPrefixCfg() *AddrPrefixCfg {
-	if defaultNetwork == Mainnet {
-		return mainnetEnv
-	}
+	//if defaultNetwork == Mainnet {
+	//	return mainnetEnv
+	//}
 	return mainnetEnv
 }
 

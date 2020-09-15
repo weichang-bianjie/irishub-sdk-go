@@ -6,8 +6,8 @@ type ClientConfig struct {
 	// IRISHub node rpc address
 	NodeURI string
 
-	// IRISHub Network type, mainnet / testnet
-	Network Network
+	//// IRISHub Network type, mainnet / testnet
+	//Network Network
 
 	// IRISHub chain-id
 	ChainID string

@@ -246,7 +246,7 @@ func (base *baseClient) prepare(baseTx sdk.BaseTx) (*sdk.TxContext, error) {
 	ctx.WithCodec(base.cdc).
 		WithChainID(base.cfg.ChainID).
 		WithKeyManager(base.KeyManager).
-		WithNetwork(base.cfg.Network).
+		//WithNetwork(base.cfg.Network).
 		WithFee(fees).
 		WithMode(base.cfg.Mode).
 		WithSimulate(false).
@@ -333,9 +333,9 @@ func initConfig(cdc sdk.Codec, cfg *sdk.ClientConfig) {
 		panic(fmt.Errorf("nodeURI is required"))
 	}
 
-	if len(cfg.Network) == 0 {
-		cfg.Network = sdk.Mainnet
-	}
+	//if len(cfg.Network) == 0 {
+	//	cfg.Network = sdk.Mainnet
+	//}
 
 	if len(cfg.ChainID) == 0 {
 		panic(fmt.Errorf("chainID is required"))
@@ -373,7 +373,7 @@ func initConfig(cdc sdk.Codec, cfg *sdk.ClientConfig) {
 		cfg.Level = "info"
 	}
 
-	sdk.SetNetwork(cfg.Network)
+	//sdk.SetNetwork(cfg.Network)
 }
 
 type locker struct {

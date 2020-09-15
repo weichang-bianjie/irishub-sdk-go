@@ -58,7 +58,7 @@ func newMockClient() MockClient {
 	path := filepath.Join(getPWD(), "test")
 	c := sdk.NewClient(types.ClientConfig{
 		NodeURI:   nodeURI,
-		Network:   network,
+		//Network:   network,
 		ChainID:   chainID,
 		Gas:       gas,
 		KeyDAO:    types.NewMemoryDB(), //default keybase
