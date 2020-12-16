@@ -103,6 +103,18 @@ func (base *baseClient) Marshaler() codec.Marshaler {
 	return base.encodingConfig.Marshaler
 }
 
+func (base *baseClient) BuildAndSendWithSpecAccountInfo(msg []sdk.Msg, baseTx sdk.BaseTx, accountNumber, accountSequence uint64) (sdk.ResultTx, sdk.Error) {
+	txByte, ctx, err := base.buildTxWithNumberSequence(msg, baseTx, accountNumber, accountSequence)
+	if err != nil {
+		return sdk.ResultTx{}, err
+	}
+
+	if err := base.ValidateTxSize(len(txByte), msg); err != nil {
+		return sdk.ResultTx{}, err
+	}
+	return base.broadcastTx(txByte, ctx.Mode(), baseTx.Simulate)
+}
+
 func (base *baseClient) BuildAndSend(msg []sdk.Msg, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
 	txByte, ctx, err := base.buildTx(msg, baseTx)
 	if err != nil {
@@ -262,6 +274,53 @@ func (base *baseClient) prepare(baseTx sdk.BaseTx) (*sdk.Factory, error) {
 	}
 	factory.WithAccountNumber(account.AccountNumber).
 		WithSequence(account.Sequence).
+		WithPassword(baseTx.Password)
+
+	if !baseTx.Fee.Empty() && baseTx.Fee.IsValid() {
+		fees, err := base.ToMinCoin(baseTx.Fee...)
+		if err != nil {
+			return nil, err
+		}
+		factory.WithFee(fees)
+	} else {
+		fees, err := base.ToMinCoin(base.cfg.Fee...)
+		if err != nil {
+			panic(err)
+		}
+		factory.WithFee(fees)
+	}
+
+	if len(baseTx.Mode) > 0 {
+		factory.WithMode(baseTx.Mode)
+	}
+
+	if baseTx.Gas > 0 {
+		factory.WithGas(baseTx.Gas)
+	}
+
+	if len(baseTx.Memo) > 0 {
+		factory.WithMemo(baseTx.Memo)
+	}
+	return factory, nil
+}
+
+func (base *baseClient) prepareWithNumberSequence(baseTx sdk.BaseTx, accountNumber, accountSequence uint64) (*sdk.Factory, error) {
+	factory := sdk.NewFactory().
+		WithChainID(base.cfg.ChainID).
+		WithKeyManager(base.KeyManager).
+		WithMode(base.cfg.Mode).
+		WithSimulate(baseTx.Simulate).
+		WithGas(base.cfg.Gas).
+		WithSignModeHandler(tx.MakeSignModeHandler(tx.DefaultSignModes)).
+		WithTxConfig(base.encodingConfig.TxConfig)
+
+	addr, err := base.QueryAddress(baseTx.From, baseTx.Password)
+	if err != nil {
+		return nil, err
+	}
+	factory.WithAddress(addr.String()).
+		WithAccountNumber(accountNumber).
+		WithSequence(accountSequence).
 		WithPassword(baseTx.Password)
 
 	if !baseTx.Fee.Empty() && baseTx.Fee.IsValid() {

@@ -12,21 +12,25 @@ import (
 
 func (s IntegrationTestSuite) TestBank() {
 	cases := []SubTest{
-		{
-			"TestQueryAccount",
-			queryAccount,
-		},
+		//{
+		//	"TestQueryAccount",
+		//	queryAccount,
+		//},
 		{
 			"TestSend",
 			send,
 		},
 		{
-			"TestMultiSend",
-			multiSend,
-		}, {
-			"TestSimulate",
-			simulate,
+			"TestSendWithSpecAccountInfo",
+			sendWithSpecAccountInfo,
 		},
+		//{
+		//	"TestMultiSend",
+		//	multiSend,
+		//}, {
+		//	"TestSimulate",
+		//	simulate,
+		//},
 	}
 
 	for _, t := range cases {
@@ -66,6 +70,44 @@ func send(s IntegrationTestSuite) {
 	res, err := s.Bank.Send(to, coins, baseTx)
 	s.NoError(err)
 	s.NotEmpty(res.Hash)
+	time.Sleep(1 * time.Second)
+
+	resp, err := s.Manager().QueryTx(res.Hash)
+	s.NoError(err)
+	s.Equal(resp.Result.Code, uint32(0))
+	s.Equal(resp.Height, res.Height)
+
+	<-ch
+}
+
+func sendWithSpecAccountInfo(s IntegrationTestSuite) {
+	coins, err := types.ParseDecCoins("10uiris")
+	s.NoError(err)
+	//to := s.GetRandAccount().Address.String()
+	to := "iaa16hnf2gluptvwmjpys0tumg2m0n84yns8svnwhf"
+
+	ch := make(chan int)
+	s.Bank.SubscribeSendTx(s.Account().Address.String(), to, func(send bank.EventDataMsgSend) {
+		ch <- 1
+	})
+
+	account, err := s.Bank.QueryAccount(s.Account().Address.String())
+	s.NoError(err)
+	s.NotEmpty(account)
+	fmt.Println(account.Address)
+	baseTx := types.BaseTx{
+		From:     s.Account().Name,
+		Gas:      200000,
+		Fee:      coins,
+		Memo:     "TEST",
+		Mode:     types.Commit,
+		Password: s.Account().Password,
+	}
+
+	res, err := s.Bank.SendWithSpecAccountInfo(to, coins, baseTx,account.AccountNumber,account.Sequence)
+	s.NoError(err)
+	s.NotEmpty(res.Hash)
+	fmt.Println(res.Hash)
 	time.Sleep(1 * time.Second)
 
 	resp, err := s.Manager().QueryTx(res.Hash)

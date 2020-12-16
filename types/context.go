@@ -141,6 +141,24 @@ func (f *Factory) WithSignModeHandler(signModeHandler SignModeHandler) *Factory 
 	return f
 }
 
+func (f *Factory) BuildAndSignWithNumberSequence(name string, msgs []Msg, accountNumber, accountSequence uint64) ([]byte, error) {
+	tx, err := f.BuildUnsignedTx(msgs)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = f.Sign(name, tx); err != nil {
+		return nil, err
+	}
+
+	txBytes, err := f.txConfig.TxEncoder()(tx.GetTx())
+	if err != nil {
+		return nil, err
+	}
+
+	return txBytes, nil
+}
+
 func (f *Factory) BuildAndSign(name string, msgs []Msg) ([]byte, error) {
 	tx, err := f.BuildUnsignedTx(msgs)
 	if err != nil {

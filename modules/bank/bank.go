@@ -61,6 +61,27 @@ func (b bankClient) Send(to string, amount sdk.DecCoins, baseTx sdk.BaseTx) (sdk
 	return b.BuildAndSend([]sdk.Msg{msg}, baseTx)
 }
 
+// SendWithSpecAccountInfo is responsible for transferring tokens from `From` to `to` accoun
+func (b bankClient) SendWithSpecAccountInfo(to string, amount sdk.DecCoins, baseTx sdk.BaseTx, accountNumber, accountSequence uint64) (sdk.ResultTx, sdk.Error) {
+	sender, err := b.QueryAddress(baseTx.From, baseTx.Password)
+	if err != nil {
+		return sdk.ResultTx{}, sdk.Wrapf("%s not found", baseTx.From)
+	}
+
+	amt, err := b.ToMinCoin(amount...)
+	if err != nil {
+		return sdk.ResultTx{}, sdk.Wrap(err)
+	}
+
+	outAddr, err := sdk.AccAddressFromBech32(to)
+	if err != nil {
+		return sdk.ResultTx{}, sdk.Wrapf(fmt.Sprintf("%s invalid address", to))
+	}
+
+	msg := NewMsgSend(sender, outAddr, amt)
+	return b.BuildAndSendWithSpecAccountInfo([]sdk.Msg{msg}, baseTx, accountNumber, accountSequence)
+}
+
 func (b bankClient) MultiSend(request MultiSendRequest, baseTx sdk.BaseTx) (resTxs []sdk.ResultTx, err sdk.Error) {
 	sender, err := b.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {

@@ -17,11 +17,11 @@ import (
 )
 
 const (
-	nodeURI  = "tcp://localhost:26657"
-	grpcAddr = "localhost:9091"
-	chainID  = "testing"
+	nodeURI  = "tcp://192.168.150.31:16657"
+	grpcAddr = "192.168.150.31:19090"
+	chainID  = "irishub-dev"
 	charset  = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	addr     = "iaa19gd09wppvlxtmrtevzq4w2gprpq0k8k88vmesx"
+	addr     = "iaa1nfgkyn6ux5mvavhyk5aq8zgzushrecut267w7q"
 )
 
 type IntegrationTestSuite struct {

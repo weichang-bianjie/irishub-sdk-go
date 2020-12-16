@@ -112,6 +112,21 @@ func (base *baseClient) buildTx(msgs []sdk.Msg, baseTx sdk.BaseTx) ([]byte, *sdk
 	return txByte, builder, nil
 }
 
+func (base *baseClient) buildTxWithNumberSequence(msgs []sdk.Msg, baseTx sdk.BaseTx, accountNumber, accountSequence uint64) ([]byte, *sdk.Factory, sdk.Error) {
+	builder, err := base.prepare(baseTx)
+	if err != nil {
+		return nil, builder, sdk.Wrap(err)
+	}
+
+	txByte, err := builder.BuildAndSignWithNumberSequence(baseTx.From, msgs, accountNumber, accountSequence)
+	if err != nil {
+		return nil, builder, sdk.Wrap(err)
+	}
+
+	base.Logger().Debug("sign transaction success")
+	return txByte, builder, nil
+}
+
 func (base baseClient) broadcastTx(txBytes []byte, mode sdk.BroadcastMode, simulate bool) (res sdk.ResultTx, err sdk.Error) {
 	if simulate {
 		estimateGas, err := base.EstimateTxGas(txBytes)
