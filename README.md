@@ -89,12 +89,13 @@ baseTx := types.BaseTx{
     Password: "password",
 }
 
-issueReq := nft.IssueDenomRequest{
-		ID:     "nftid",
-		Name:   "nftname",
-		Schema: "nftschema",
+msg := &nft.MsgIssueDenom{
+		Id:     "denomid",
+		Name:   "denomName",
+		Schema: "schema",
+		Sender: "iaa1hp29kuh22vpjjlnctmyml5s75evsnsd8r4x0mm",
 }
-txhash, err := s.NFT.GetHash(issueReq, baseTx)
+txhash, err := s.GetTxHash([]sdk.Msg{msg}, baseTx)
 ```
 
 **Note**: If you use the relevant API for sending transactions, you should implement the `KeyDAO` interface. Use the `NewKeyDaoWithAES` method to initialize a `KeyDAO` instance, which will use the `AES` encryption method by default.

@@ -26,13 +26,21 @@ func (s IntegrationTestSuite) TestNFT() {
 		Name:   denomName,
 		Schema: schema,
 	}
-	txhash, err := s.NFT.GetHash(issueReq, baseTx)
+	msg := &nft.MsgIssueDenom{
+		Id:     denomID,
+		Name:   denomName,
+		Schema: schema,
+		Sender: addr,
+	}
+	txhash, err := s.GetTxHash([]sdk.Msg{msg}, baseTx)
 	require.NoError(s.T(), err)
 	require.NotEmpty(s.T(), txhash)
+	fmt.Println(txhash)
 
 	res, err := s.NFT.IssueDenom(issueReq, baseTx)
 	require.NoError(s.T(), err)
 	require.NotEmpty(s.T(), res.Hash)
+	fmt.Println(res.Hash)
 
 	tokenID := strings.ToLower(s.RandStringOfLength(7))
 	tokenName := strings.ToLower(s.RandStringOfLength(7))
@@ -44,9 +52,6 @@ func (s IntegrationTestSuite) TestNFT() {
 		URI:   fmt.Sprintf("https://%s", s.RandStringOfLength(10)),
 		Data:  tokenData,
 	}
-	mintReqtxhash, err := s.NFT.GetHash(mintReq, baseTx)
-	require.NoError(s.T(), err)
-	require.NotEmpty(s.T(), mintReqtxhash)
 
 	res, err = s.NFT.MintNFT(mintReq, baseTx)
 	require.NoError(s.T(), err)
